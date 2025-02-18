@@ -59,7 +59,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-to-assume: arn:aws:iam::510278866235:role/OIDC-GitHUb
-          aws-region: us-west-2
+          aws-region: us-east-1
 
       # Step 7: Setup Terraform
       - name: Setup Terraform
@@ -69,7 +69,7 @@ jobs:
 
       # Step 8: Terraform Init & Plan
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -reconfigure
         working-directory: ./usecase1
 
       - name: Terraform Plan
