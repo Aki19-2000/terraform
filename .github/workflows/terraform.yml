@@ -101,7 +101,7 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@v2.9.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          header: "Terraform Documentation 📖"
+          header: "Terraform Documentation "
           path: "./usecase1/README.md"
 
       # Step 12: Apply Terraform Changes on PR Merge
