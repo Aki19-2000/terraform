@@ -3,7 +3,7 @@ terraform {
   backend "s3" {
     bucket         = "akired"
     key            = "env:/dev/terraform.tfstate"
-    region         = "us-west-2"
+    region         = "us-east-1"
     dynamodb_table = "terraform-locks"
   }
 }
