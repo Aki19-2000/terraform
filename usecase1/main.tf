@@ -178,7 +178,7 @@ resource "aws_security_group" "db_sg" {
 
 # Create EC2 Instances for Web Servers with Database Connection Example
 resource "aws_instance" "web1" {
-  ami           = "ami-05d38da78ce859165"
+  ami           = "ami-053a45fff0a704a47"
   instance_type = "t3.micro"
   #availability_zone    = "us-east-1a" 
   subnet_id     = aws_subnet.public1.id
@@ -225,7 +225,7 @@ resource "aws_instance" "web1" {
 }
 
 resource "aws_instance" "web2" {
-  ami           = "ami-05d38da78ce859165"
+  ami           = "ami-053a45fff0a704a47"
   instance_type = "t3.micro"
   #availability_zone    = "us-east-1a" 
   subnet_id     = aws_subnet.public2.id
@@ -287,7 +287,7 @@ resource "aws_db_instance" "app_db" {
   skip_final_snapshot  = true
   db_subnet_group_name = aws_db_subnet_group.default.name
   multi_az               = true
-  #availability_zone      = "us-east-1a"
+  
 
 
   tags = {
