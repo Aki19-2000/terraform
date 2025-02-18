@@ -71,11 +71,11 @@ jobs:
       # Step 8: Terraform Init & Plan
       - name: Terraform Init
         run: terraform init
-        working-directory: ./Usecase_1
+        working-directory: ./usecase1
 
       - name: Terraform Plan
         run: terraform plan
-        working-directory: ./Usecase_1
+        working-directory: ./usecase1
 
       # Step 9: Generate Terraform Docs Markdown
       - name: Generate Markdown with Terraform Docs
