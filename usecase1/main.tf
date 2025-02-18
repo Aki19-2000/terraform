@@ -299,28 +299,6 @@ output "rds_endpoint" {
   value = aws_db_instance.app_db.endpoint
 }
 
-# Initialize Database with Sample Data
-resource "null_resource" "db_init" {
-  provisioner "local-exec" {
-    command = <<EOT
-      aws rds modify-db-instance --db-instance-identifier my-rds-instance --apply-immediately --enable-iam-database-authentication
-      aws rds wait db-instance-available --db-instance-identifier my-rds-instance
-      mysql -h ${aws_db_instance.app_db.endpoint} -u admin -p password123 -e "
-      CREATE DATABASE IF NOT EXISTS mydb;
-      CREATE TABLE IF NOT EXISTS mydb.users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL
-      );
-      INSERT INTO mydb.users (name) VALUES ('John Doe'), ('Jane Smith'), ('Alice Johnson');
-      "
-    EOT
-  }
-
-  depends_on = [aws_db_instance.app_db]
-}
-
-
-
 variable "instance_type" {
   description = "EC2 instance type"
   default     = "t3.micro"
