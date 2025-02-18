@@ -39,7 +39,7 @@ jobs:
       # Step 3: Track Large Files with Git LFS
       - name: Track Large Files with Git LFS
         run: |
-          git lfs track "Usecase_1/.terraform/providers/registry.terraform.io/hashicorp/aws/5.87.0/linux_amd64/terraform-provider-aws_v5.87.0_x5"
+          git lfs track "usecase1/.terraform/providers/registry.terraform.io/hashicorp/aws/5.87.0/linux_amd64/terraform-provider-aws_v5.87.0_x5"
           git add .gitattributes  # Make sure to add the .gitattributes file that git-lfs uses
 
       # Step 4: Commit Changes (If Needed)
@@ -81,7 +81,7 @@ jobs:
         if: github.event_name == 'push' || github.event_name == 'pull_request'
         uses: terraform-docs/gh-actions@v1.3.0
         with:
-          working-dir: ./Usecase_1
+          working-dir: ./usecase
           output-file: README.md
           output-method: inject
           git-push: true
@@ -102,12 +102,12 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           header: "Terraform Documentation 📖"
-          path: "./Usecase_1/README.md"
+          path: "./usecase1/README.md"
 
       # Step 12: Apply Terraform Changes on PR Merge
       - name: Apply Terraform on Merge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          cd ./Usecase_1
+          cd ./usecase1
           terraform init
           terraform apply -auto-approve
