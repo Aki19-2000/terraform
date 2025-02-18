@@ -23,8 +23,17 @@ jobs:
       with:
         terraform_version: "1.4.0"  # Use the latest version of Terraform
 
-    - name: Initialize Terraform (with backend)
-      run: terraform init
+    - name: Initialize Terraform (without backend)
+      run: terraform init -backend=false  # Initial run to create resources (S3 & DynamoDB)
+
+    - name: Apply Terraform (to create the S3 bucket and DynamoDB)
+      run: terraform apply -auto-approve
+
+    - name: Update Backend Configuration with S3 Bucket
+      run: |
+        BUCKET_NAME=$(terraform output -raw s3_bucket_name)
+        sed -i "s|bucket = .*|bucket = \"$BUCKET_NAME\"|" backend.tf
+        terraform init -reconfigure  # Reinitialize with the correct backend
 
     - name: Plan Terraform
       run: terraform plan
