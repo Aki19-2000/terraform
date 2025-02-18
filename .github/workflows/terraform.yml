@@ -38,7 +38,9 @@ jobs:
     - name: Update Backend Configuration
       run: |
         sed -i "s|bucket = .*|bucket = \"${{ env.bucket_name }}\"|" backend.tf  # Update the backend configuration with the actual bucket name
-        terraform init -reconfigure  # Reinitialize with the correct backend
+
+    - name: Reinitialize Terraform with the new backend configuration
+      run: terraform init -reconfigure  # Reinitialize Terraform with the correct backend
 
     - name: Plan Terraform
       run: terraform plan
