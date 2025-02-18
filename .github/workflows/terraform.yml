@@ -1,0 +1,50 @@
+name: Terraform Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: '1.5.0'  
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_region: 'us-east-1'
+
+    - name: Initialize Terraform
+      run: terraform init
+
+    - name: Generate Terraform Plan
+      run: terraform plan -out=tfplan
+
+    - name: Generate Terraform Documentation in Markdown
+      run: terraform-docs markdown . > plan.md
+
+    - name: Upload Terraform Plan and Markdown as PR Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: terraform-plan
+        path: |
+          plan.md
+          tfplan
+
+    - name: Apply Terraform Configuration
+      run: terraform apply -auto-approve tfplan
+      if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
