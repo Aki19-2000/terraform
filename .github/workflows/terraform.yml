@@ -1,40 +1,36 @@
-# .github/workflows/terraform.yml
-
-name: Terraform CI/CD Pipeline
+name: Terraform CI/CD Workflow
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:  # Allows manual triggering of the workflow
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
+    - name: Set up AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: "us-east-1"
 
-      - name: Configure AWS Credentials
-        run: |
-          mkdir -p ~/.aws
-          echo "[default]" > ~/.aws/credentials
-          echo "aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
-          echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
-        shell: bash
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: "1.4.0"  # Use the latest version of Terraform
 
-      - name: Terraform Init
-        run: terraform init -backend-config="bucket=my-terraform-state" -backend-config="key=vpc-terraform.tfstate" -backend-config="region=us-east-1" -backend-config="dynamodb_table=terraform-lock"
+    - name: Initialize Terraform (Create S3 bucket and DynamoDB)
+      run: terraform init -backend=false
 
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
+    - name: Plan Terraform
+      run: terraform plan
 
-      - name: Generate Terraform Doc
-        run: terraform-docs markdown . > plan.md
+    - name: Apply Terraform
+      run: terraform apply -auto-approve
 
-      - name: Apply Terraform Configuration
-        run: terraform apply -auto-approve tfplan
-        if: github.event.pull_request.merged == 'true'
+    - name: Generate Terraform Documentation (optional)
+      run: terraform-docs markdown . > README.md
