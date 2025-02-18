@@ -1,67 +1,93 @@
-# main.tf
-
-# AWS Provider Configuration
+# Provider Configuration
 provider "aws" {
-  region = "us-east-1"  # Changed region to us-east-1
+  region = "us-east-1"
 }
 
-# VPC Definition
-resource "aws_vpc" "my_vpc" {
+# VPC Creation
+resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
   enable_dns_support = true
   enable_dns_hostnames = true
   tags = {
-    Name = "my-vpc"
+    Name = "main-vpc"
   }
 }
 
-# Public Subnet 1 (Web Tier)
-resource "aws_subnet" "web_subnet_1" {
-  vpc_id                  = aws_vpc.my_vpc.id
+# Public Subnet for Web Tier
+resource "aws_subnet" "public_subnet_1" {
+  vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
-  availability_zone       = "us-east-1a"  # Changed to us-east-1a
+  availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
   tags = {
-    Name = "web-subnet-1"
+    Name = "public-subnet-1"
   }
 }
 
-# Public Subnet 2 (Web Tier)
-resource "aws_subnet" "web_subnet_2" {
-  vpc_id                  = aws_vpc.my_vpc.id
+resource "aws_subnet" "public_subnet_2" {
+  vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.2.0/24"
-  availability_zone       = "us-east-1b"  # Changed to us-east-1b
+  availability_zone       = "us-east-1b"
   map_public_ip_on_launch = true
   tags = {
-    Name = "web-subnet-2"
+    Name = "public-subnet-2"
   }
 }
 
-# Private Subnet 1 (Database Tier)
-resource "aws_subnet" "db_subnet_1" {
-  vpc_id            = aws_vpc.my_vpc.id
+# Private Subnet for Database Tier
+resource "aws_subnet" "private_subnet_1" {
+  vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.3.0/24"
-  availability_zone = "us-east-1a"  # Changed to us-east-1a
+  availability_zone = "us-east-1a"
   tags = {
-    Name = "db-subnet-1"
+    Name = "private-subnet-1"
   }
 }
 
-# Private Subnet 2 (Database Tier)
-resource "aws_subnet" "db_subnet_2" {
-  vpc_id            = aws_vpc.my_vpc.id
+resource "aws_subnet" "private_subnet_2" {
+  vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.4.0/24"
-  availability_zone = "us-east-1b"  # Changed to us-east-1b
+  availability_zone = "us-east-1b"
   tags = {
-    Name = "db-subnet-2"
+    Name = "private-subnet-2"
   }
+}
+
+# Internet Gateway for public subnets
+resource "aws_internet_gateway" "internet_gateway" {
+  vpc_id = aws_vpc.main.id
+}
+
+# Route Tables for public and private subnets
+resource "aws_route_table" "public_route_table" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.internet_gateway.id
+  }
+
+  tags = {
+    Name = "public-route-table"
+  }
+}
+
+# Public route table association
+resource "aws_route_table_association" "public_route_table_association_1" {
+  subnet_id      = aws_subnet.public_subnet_1.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
+resource "aws_route_table_association" "public_route_table_association_2" {
+  subnet_id      = aws_subnet.public_subnet_2.id
+  route_table_id = aws_route_table.public_route_table.id
 }
 
 # Security Group for Web Servers
 resource "aws_security_group" "web_sg" {
-  name        = "web-sg"
-  description = "Allow HTTP and HTTPS traffic"
-  vpc_id      = aws_vpc.my_vpc.id
+  name        = "web_sg"
+  description = "Allow HTTP and SSH"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     from_port   = 80
@@ -71,8 +97,8 @@ resource "aws_security_group" "web_sg" {
   }
 
   ingress {
-    from_port   = 443
-    to_port     = 443
+    from_port   = 22
+    to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -85,17 +111,60 @@ resource "aws_security_group" "web_sg" {
   }
 }
 
-# Security Group for Database (RDS)
+# EC2 Instance for Web Servers
+resource "aws_instance" "web_server_1" {
+  ami           = "ami-0c55b159cbfafe1f0"  # Example Amazon Linux 2 AMI in us-east-1
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.public_subnet_1.id
+  security_group = aws_security_group.web_sg.id
+  associate_public_ip_address = true
+  key_name = "your-key-name"  # Replace with your SSH key name
+
+  user_data = <<-EOF
+              #!/bin/bash
+              yum install -y httpd
+              service httpd start
+              chkconfig httpd on
+              echo "Web Server 1" > /var/www/html/index.html
+            EOF
+
+  tags = {
+    Name = "web-server-1"
+  }
+}
+
+resource "aws_instance" "web_server_2" {
+  ami           = "ami-0c55b159cbfafe1f0"  # Example Amazon Linux 2 AMI in us-east-1
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.public_subnet_2.id
+  security_group = aws_security_group.web_sg.id
+  associate_public_ip_address = true
+  key_name = "your-key-name"  # Replace with your SSH key name
+
+  user_data = <<-EOF
+              #!/bin/bash
+              yum install -y httpd
+              service httpd start
+              chkconfig httpd on
+              echo "Web Server 2" > /var/www/html/index.html
+            EOF
+
+  tags = {
+    Name = "web-server-2"
+  }
+}
+
+# Security Group for Database Server
 resource "aws_security_group" "db_sg" {
-  name        = "db-sg"
-  description = "Allow MySQL traffic from web servers"
-  vpc_id      = aws_vpc.my_vpc.id
+  name        = "db_sg"
+  description = "Allow MySQL access"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["10.0.1.0/24", "10.0.2.0/24"]
+    cidr_blocks = [aws_subnet.private_subnet_1.cidr_block, aws_subnet.private_subnet_2.cidr_block]
   }
 
   egress {
@@ -106,45 +175,7 @@ resource "aws_security_group" "db_sg" {
   }
 }
 
-# EC2 Instance for Web Server 1 (Apache/Nginx)
-resource "aws_instance" "web_server_1" {
-  ami           = "ami-xyz"  # Use appropriate AMI ID for your region
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.web_subnet_1.id
-  security_groups = [aws_security_group.web_sg.name]
-  
-  tags = {
-    Name = "WebServer-1"
-  }
-
-  user_data = <<-EOF
-                #!/bin/bash
-                sudo yum install -y httpd
-                sudo systemctl start httpd
-                sudo systemctl enable httpd
-              EOF
-}
-
-# EC2 Instance for Web Server 2 (Apache/Nginx)
-resource "aws_instance" "web_server_2" {
-  ami           = "ami-xyz"  # Use appropriate AMI ID for your region
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.web_subnet_2.id
-  security_groups = [aws_security_group.web_sg.name]
-  
-  tags = {
-    Name = "WebServer-2"
-  }
-
-  user_data = <<-EOF
-                #!/bin/bash
-                sudo yum install -y httpd
-                sudo systemctl start httpd
-                sudo systemctl enable httpd
-              EOF
-}
-
-# RDS MySQL Instance (Database Tier)
+# RDS MySQL instance in Private Subnets
 resource "aws_db_instance" "my_db" {
   identifier        = "mydb-instance"
   engine            = "mysql"
@@ -152,28 +183,21 @@ resource "aws_db_instance" "my_db" {
   allocated_storage = 20
   db_name           = "mydb"
   username          = "admin"
-  password          = "password"
+  password          = "password123"  # Use AWS Secrets Manager for sensitive info
+  subnet_group_name = aws_db_subnet_group.my_subnet_group.name
   vpc_security_group_ids = [aws_security_group.db_sg.id]
-  multi_az          = true
-  subnet_group_name = aws_db_subnet_group.my_db_subnet_group.name
+  multi_az          = false
+  publicly_accessible = false
   tags = {
-    Name = "my-db-instance"
+    Name = "MyDatabase"
   }
 }
 
-# DynamoDB for State Locking (for remote state management)
-resource "aws_dynamodb_table" "my_lock_table" {
-  name         = "terraform-lock"
-  hash_key     = "LockID"
-  billing_mode = "PAY_PER_REQUEST"
-  attribute {
-    name = "LockID"
-    type = "S"
+# DB Subnet Group for RDS
+resource "aws_db_subnet_group" "my_subnet_group" {
+  name        = "my-subnet-group"
+  subnet_ids  = [aws_subnet.private_subnet_1.id, aws_subnet.private_subnet_2.id]
+  tags = {
+    Name = "MyDatabaseSubnetGroup"
   }
-}
-
-# S3 Bucket for Remote State Management
-resource "aws_s3_bucket" "my_bucket" {
-  bucket = "my-terraform-state"
-  acl    = "private"
 }
