@@ -1,9 +1,9 @@
 # Configure Terraform Backend.
 terraform {
   backend "s3" {
-    bucket         = "nsh-usecase1"
+    bucket         = "akired"
     key            = "env:/dev/terraform.tfstate"
     region         = "us-west-2"
-    dynamodb_table = "terraform-locks"
+    dynamodb_table = "usecase1"
   }
 }
