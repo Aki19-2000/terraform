@@ -1,5 +1,11 @@
+resource "random_string" "bucket_suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "my-terraform-state"
+  bucket = "akired-${random_string.bucket_suffix.result}"  # Unique bucket name with random suffix
   acl    = "private"
 }
 
