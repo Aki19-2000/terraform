@@ -29,10 +29,15 @@ jobs:
     - name: Apply Terraform (to create the S3 bucket and DynamoDB)
       run: terraform apply -auto-approve
 
-    - name: Update Backend Configuration with S3 Bucket
+    - name: Extract the S3 bucket name and update backend
+      id: extract_bucket_name
       run: |
-        BUCKET_NAME=$(terraform output -raw s3_bucket_name)
-        sed -i "s|bucket = .*|bucket = \"$BUCKET_NAME\"|" backend.tf
+        BUCKET_NAME=$(terraform output -raw terraform_state)
+        echo "bucket_name=$BUCKET_NAME" >> $GITHUB_ENV  # Save it to GitHub environment variable for later use
+
+    - name: Update Backend Configuration
+      run: |
+        sed -i "s|bucket = .*|bucket = \"${{ env.bucket_name }}\"|" backend.tf  # Update the backend configuration with the actual bucket name
         terraform init -reconfigure  # Reinitialize with the correct backend
 
     - name: Plan Terraform
