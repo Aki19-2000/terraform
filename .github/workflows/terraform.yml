@@ -23,8 +23,8 @@ jobs:
       with:
         terraform_version: "1.4.0"  # Use the latest version of Terraform
 
-    - name: Initialize Terraform (Create S3 bucket and DynamoDB)
-      run: terraform init -backend=false
+    - name: Initialize Terraform (with backend)
+      run: terraform init
 
     - name: Plan Terraform
       run: terraform plan
