@@ -73,7 +73,7 @@ jobs:
         working-directory: ./usecase1
 
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -lock=false
         working-directory: ./usecase1
 
       # Step 9: Generate Terraform Docs Markdown
@@ -110,4 +110,5 @@ jobs:
         run: |
           cd ./usecase1
           terraform init
-          terraform apply -auto-approve
+          terraform apply -auto-approve -lock=false
+
