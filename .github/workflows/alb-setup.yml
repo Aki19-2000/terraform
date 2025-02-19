@@ -41,7 +41,7 @@ jobs:
         working-directory: alb
 
       - name: Terraform apply
-        run: erraform apply -auto-approve
+        run: terraform apply -auto-approve
         working-directory: alb
 
 
