@@ -1,4 +1,4 @@
-name: Deploy ALB Infrastructure
+name: Deploy ALB Infrastructure in AWS
 
 on:
   push:
