@@ -301,7 +301,7 @@ output "rds_endpoint" {
 
 variable "instance_type" {
   description = "EC2 instance type"
-  default     = "t3.micro"
+  default     = "t2.micro"
 }
 
 variable "db_instance_class" {
