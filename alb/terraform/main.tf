@@ -170,7 +170,7 @@ resource "aws_instance" "instance_a" {
     Name = "Instance-A"
   }
 
-  user_data = file("alb/app/nginx-homepage.sh")
+  user_data = file("app/nginx-homepage.sh")
 }
 
 resource "aws_instance" "instance_b" {
@@ -184,7 +184,7 @@ resource "aws_instance" "instance_b" {
     Name = "Instance-B"
   }
 
-  user_data = file("alb/app/nginx-images.sh")
+  user_data = file("app/nginx-images.sh")
 }
 
 resource "aws_instance" "instance_c" {
@@ -198,7 +198,7 @@ resource "aws_instance" "instance_c" {
     Name = "Instance-C"
   }
 
-  user_data = file("alb/app/nginx-register.sh")
+  user_data = file("app/nginx-register.sh")
 }
 
 # ------------------------------
