@@ -8,7 +8,7 @@ provider "aws" {
 
 # Create VPC
 resource "aws_vpc" "main_vpc" {
-  cidr_block = var.vpc_cidr_block
+  cidr_block = "10.0.0.0/16"
   enable_dns_support = true
   enable_dns_hostnames = true
 
@@ -20,7 +20,7 @@ resource "aws_vpc" "main_vpc" {
 # Create Public Subnet in AZ1
 resource "aws_subnet" "public_subnet_az1" {
   vpc_id                  = aws_vpc.main_vpc.id
-  cidr_block              = var.public_subnet_cidr_az1
+  cidr_block              = "10.0.1.0/24"
   availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
 
@@ -32,7 +32,7 @@ resource "aws_subnet" "public_subnet_az1" {
 # Create Public Subnet in AZ2
 resource "aws_subnet" "public_subnet_az2" {
   vpc_id                  = aws_vpc.main_vpc.id
-  cidr_block              = var.public_subnet_cidr_az2
+  cidr_block              = "10.0.2.0/24"
   availability_zone       = "us-east-1b"
   map_public_ip_on_launch = true
 
@@ -44,7 +44,7 @@ resource "aws_subnet" "public_subnet_az2" {
 # Create Private Subnet in AZ1
 resource "aws_subnet" "private_subnet_az1" {
   vpc_id                  = aws_vpc.main_vpc.id
-  cidr_block              = var.private_subnet_cidr_az1
+  cidr_block              = "10.0.3.0/24"
   availability_zone       = "us-east-1a"
 
   tags = {
@@ -55,7 +55,7 @@ resource "aws_subnet" "private_subnet_az1" {
 # Create Private Subnet in AZ2
 resource "aws_subnet" "private_subnet_az2" {
   vpc_id                  = aws_vpc.main_vpc.id
-  cidr_block              = var.private_subnet_cidr_az2
+  cidr_block              = "10.0.4.0/24"
   availability_zone       = "us-east-1b"
 
   tags = {
@@ -65,7 +65,7 @@ resource "aws_subnet" "private_subnet_az2" {
 
 # Create NAT Gateway in Public Subnet (AZ1)
 resource "aws_eip" "nat_eip" {
-  vpc = true
+  domain = "vpc"
 }
 
 resource "aws_nat_gateway" "nat_gateway" {
@@ -163,7 +163,7 @@ resource "aws_security_group" "nginx_sg" {
 resource "aws_instance" "instance_a" {
   ami             = var.ami_id
   instance_type   = var.instance_type
-  security_groups = [aws_security_group.nginx_sg.name]
+  vpc_security_group_ids = [aws_security_group.nginx_sg.id]
   availability_zone = "us-east-1a"
   subnet_id       = aws_subnet.private_subnet_az1.id
 
@@ -177,7 +177,7 @@ resource "aws_instance" "instance_a" {
 resource "aws_instance" "instance_b" {
   ami             = var.ami_id
   instance_type   = var.instance_type
-  security_groups = [aws_security_group.nginx_sg.name]
+  vpc_security_group_ids = [aws_security_group.nginx_sg.id]
   availability_zone = "us-east-1b"
   subnet_id       = aws_subnet.private_subnet_az2.id
 
@@ -191,8 +191,8 @@ resource "aws_instance" "instance_b" {
 resource "aws_instance" "instance_c" {
   ami             = var.ami_id
   instance_type   = var.instance_type
-  security_groups = [aws_security_group.nginx_sg.name]
-  availability_zone = "us-east-1c"
+  vpc_security_group_ids = [aws_security_group.nginx_sg.id]
+  availability_zone = "us-east-1a"
   subnet_id       = aws_subnet.private_subnet_az1.id
 
   tags = {
@@ -259,9 +259,10 @@ resource "aws_lb_listener_rule" "homepage_rule" {
   }
 
   condition {
-    field  = "path-pattern"
-    values = ["/"]
-  }
+    path_pattern { 
+      values = ["/"]
+    }
+  } 
 }
 
 resource "aws_lb_listener_rule" "images_rule" {
@@ -273,8 +274,9 @@ resource "aws_lb_listener_rule" "images_rule" {
   }
 
   condition {
-    field  = "path-pattern"
-    values = ["/images"]
+    path_pattern {
+      values = ["/images"]
+    }
   }
 }
 
@@ -287,12 +289,32 @@ resource "aws_lb_listener_rule" "register_rule" {
   }
 
   condition {
-    field  = "path-pattern"
-    values = ["/register"]
-  }
+    path_pattern {
+      values = ["/register"]
+    }
+  } 
 }
 
+resource "aws_lb_target_group_attachment" "tg_attach_a" {
+  target_group_arn = aws_lb_target_group.tg_a.arn
+  target_id = aws_instance.instance_a.id
+  port            = 80
+}
+ 
+resource "aws_lb_target_group_attachment" "tg_attach_b" {
+  target_group_arn = aws_lb_target_group.tg_b.arn
+  target_id = aws_instance.instance_b.id
+  port            = 80
+}
+ 
+resource "aws_lb_target_group_attachment" "tg_attach_c" {
+  target_group_arn = aws_lb_target_group.tg_c.arn
+  target_id = aws_instance.instance_c.id
+  port            = 80
+}
 # Output Load Balancer URL
 output "load_balancer_url" {
   value = aws_lb.app_lb.dns_name
 }
+
+
