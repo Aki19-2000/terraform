@@ -17,16 +17,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         
-      - name: Install Git LFS
-        run: |
-          git lfs install  
-
-      - name: Track Large Files with Git LFS
-        run: |
-          git lfs track "alb/.terraform/providers/registry.terraform.io/hashicorp/aws/5.87.0/linux_amd64/terraform-provider-aws_v5.87.0_x5"
-          git add .gitattributes  # Make sure to add the .gitattributes file that git-lfs uses
-
-        
       # Step 2: Manually configure AWS CLI with credentials
       - name: Configure AWS CLI (Manual setup)
         run: |
@@ -50,36 +40,11 @@ jobs:
         run: terraform plan
         working-directory: alb
 
-      - name: Generate Markdown with Terraform Docs
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
-        uses: terraform-docs/gh-actions@v1.3.0
-        with:
-          working-dir: ./alb
-          output-file: README.md
-          output-method: inject
-          git-push: true
-          config-file: .terraform-docs.yml
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Terraform apply
+        run: terraform apply
+        working-directory: alb
 
-      - name: Configure Git
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
-      - name: Posting README.md as PR Comment
-        if: github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2.9.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          header: "Terraform Documentation "
-          path: "./alb/README.md"
-
-      - name: Applying Terraform after PR Merge
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          cd ./alb
-          terraform init
-          terraform apply -auto-approve -lock=false
+      
 
       
