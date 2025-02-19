@@ -275,7 +275,7 @@ resource "aws_lb_listener_rule" "images_rule" {
 
   condition {
     path_pattern {
-      values = ["/images"]
+      values = ["/index.html"]
     }
   }
 }
@@ -290,7 +290,7 @@ resource "aws_lb_listener_rule" "register_rule" {
 
   condition {
     path_pattern {
-      values = ["/register"]
+      values = ["/index1.html"]
     }
   } 
 }
