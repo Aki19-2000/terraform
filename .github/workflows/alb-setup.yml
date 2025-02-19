@@ -1,4 +1,4 @@
-name: Deploy Terraform
+name: Deploy alb
 
 on:
   workflow_dispatch:
