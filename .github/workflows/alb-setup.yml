@@ -33,16 +33,16 @@ jobs:
       # Step 4: Terraform Init
       - name: Terraform Init
         run: terraform init
-        working-directory: alb
+        working-directory: alb/terraform
 
       # Step 5: Terraform Plan
       - name: Terraform Plan
         run: terraform plan
-        working-directory: alb
+        working-directory: alb/terraform
 
       - name: Terraform apply
         run: terraform apply -auto-approve
-        working-directory: alb
+        working-directory: alb/terraform
 
 
       
