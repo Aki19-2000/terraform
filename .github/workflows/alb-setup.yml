@@ -17,6 +17,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         
+      - name: Install Git LFS
+        run: |
+          git lfs install  
+
+      - name: Track Large Files with Git LFS
+        run: |
+          git lfs track "usecase1/.terraform/providers/registry.terraform.io/hashicorp/aws/5.87.0/linux_amd64/terraform-provider-aws_v5.87.0_x5"
+          git add .gitattributes  # Make sure to add the .gitattributes file that git-lfs uses
+
+      - name: Commit Changes (if any)
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git commit -m "Add Terraform provider binary to Git LFS" || echo "No changes to commit"
+
+      - name: Push Changes
+        run: |
+          git push origin ${{ github.event.pull_request.head.ref || github.ref }}
+        
       # Step 2: Manually configure AWS CLI with credentials
       - name: Configure AWS CLI (Manual setup)
         run: |
@@ -40,7 +59,36 @@ jobs:
         run: terraform plan
         working-directory: alb
 
-      # Step 6: Terraform Apply
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
-        working-directory: alb
+      - name: Generate Markdown with Terraform Docs
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        uses: terraform-docs/gh-actions@v1.3.0
+        with:
+          working-dir: ./usecase1
+          output-file: README.md
+          output-method: inject
+          git-push: true
+          config-file: .terraform-docs.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Posting README.md as PR Comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2.9.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          header: "Terraform Documentation "
+          path: "./usecase1/README.md"
+
+      - name: Applying Terraform after PR Merge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          cd ./usecase1
+          terraform init
+          terraform apply -auto-approve -lock=false
+
+      
