@@ -5,6 +5,7 @@ variable "aws_region" {
 
 variable "ami_id" {
   description = "AMI ID to use for EC2 instances"
+  default     = "ami-085ad6ae776d8f09c"
 }
 
 variable "instance_type" {
@@ -12,11 +13,3 @@ variable "instance_type" {
   default     = "t2.micro"
 }
 
-variable "vpc_id" {
-  description = "VPC ID for the load balancer"
-}
-
-variable "subnet_ids" {
-  description = "List of subnet IDs for the load balancer"
-  type        = list(string)
-}
