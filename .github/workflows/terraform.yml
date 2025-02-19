@@ -96,7 +96,7 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       # Step 11: Add README.md as PR Comment (Using Sticky Comment)
-      - name: Post README.md as PR Comment
+      - name: Posting README.md as PR Comment
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2.9.0
         with:
@@ -105,7 +105,7 @@ jobs:
           path: "./usecase1/README.md"
 
       # Step 12: Apply Terraform Changes on PR Merge
-      - name: Apply Terraform on Merge
+      - name: Applying Terraform after PR Merge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           cd ./usecase1
