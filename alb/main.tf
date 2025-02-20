@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 # VPC, Subnets, NAT, and Route Tables
-# ----------------------------
+
 
 # Create VPC
 resource "aws_vpc" "main_vpc" {
