@@ -9,7 +9,7 @@ resource "aws_vpc" "main" {
   }
 }
 
-# Create Public Subnets
+# Create Public Subnet
 resource "aws_subnet" "public1" {
   vpc_id     = aws_vpc.main.id
   cidr_block = "10.0.1.0/24"
