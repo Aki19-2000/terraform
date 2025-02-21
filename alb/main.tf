@@ -2,7 +2,7 @@ provider "aws" {
   region = var.aws_region
 }
 
-# VPC, Subnets, NAT, and Route Table
+# VPC, Subnets, NAT
 
 
 # Create VPC
